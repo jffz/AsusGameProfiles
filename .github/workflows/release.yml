@@ -11,6 +11,13 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
+    # Job-level env so the optional-step "if:" conditions below can check env.X -- the "secrets"
+    # context is not a recognized named-value directly inside a step's own "if:" (confirmed via a
+    # real failed run: "Invalid workflow file ... Unrecognized named-value: 'secrets'" at those
+    # exact lines), only via env/with/run. Hoisting to job-level env is the standard workaround.
+    env:
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
 
     steps:
       - name: Checkout
@@ -55,9 +62,7 @@ jobs:
       # Skips cleanly (not a failure) if they're not configured -- see README's "Known limitations"
       # and CONTRIBUTING.md. Never blocks a release on signing being unavailable.
       - name: Sign installer (SignPath)
-        if: ${{ secrets.SIGNPATH_API_TOKEN != '' }}
-        env:
-          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        if: ${{ env.SIGNPATH_API_TOKEN != '' }}
         shell: pwsh
         run: |
           Write-Host "SignPath secrets are configured but the signing step itself is not wired up yet -- add it here once SignPath.io access is granted."
@@ -92,9 +97,7 @@ jobs:
       # skipped cleanly (not a failure) if CHOCO_API_KEY isn't set. See CONTRIBUTING.md for the
       # manual `choco push` instructions once an account exists.
       - name: Push to Chocolatey
-        if: ${{ secrets.CHOCO_API_KEY != '' }}
-        env:
-          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        if: ${{ env.CHOCO_API_KEY != '' }}
         shell: pwsh
         run: |
           $nupkg = Get-ChildItem dist\*.nupkg | Select-Object -First 1
