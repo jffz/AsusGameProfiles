@@ -103,8 +103,9 @@ the only mechanism this app uses today.)
   currently apply without picking a specific target — multi-monitor selection is planned but not
   built yet.
 - **No auto-update.** New versions need to be downloaded and reinstalled manually for now.
-- **Unsigned installer.** Windows SmartScreen may warn on first install. Code signing (via
-  [SignPath.io](https://signpath.io/)'s free program for open-source projects) is in progress.
+- **Unsigned installer.** Windows SmartScreen may warn on first install. This project uses (or is
+  applying to use) the [SignPath Foundation](https://signpath.org/)'s free code signing program for
+  open-source software — releases will be signed once that's set up.
 - **Package managers.** Chocolatey and Winget packaging is in progress; MSI-from-Releases is the
   supported install path for now.
 
