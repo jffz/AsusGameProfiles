@@ -1,0 +1,26 @@
+AsusGameProfiles
+Copyright 2026 jffz
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+------------------------------------------------------------------------------
+
+Third-party components
+------------------------------------------------------------------------------
+
+This application optionally downloads and shells out to dwc.exe, ASUS's
+official Display Control CLI, at runtime (it is not bundled with this
+repository or the installer). dwc.exe is developed and distributed by ASUS:
+
+  https://github.com/ASUS-Display/asus-display-control
+
+Licensed under the Apache License, Version 2.0.
+
+------------------------------------------------------------------------------
+
+Trademark notice
+------------------------------------------------------------------------------
+
+"ASUS" is a trademark of ASUSTeK Computer Inc. This project is an independent,
+community-developed tool and is not affiliated with, endorsed by, or
+sponsored by ASUS.
