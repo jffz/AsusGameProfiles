@@ -1,123 +1,120 @@
 # AsusGameProfiles
 
-Petite app Windows (WPF, .NET 8, x64) qui généralise ton `cs2_gamevisual.bat` à tous tes jeux
-Steam : une interface pour choisir, par jeu, le profil GameVisual + Frame Rate Boost à appliquer
-au lancement et à la fermeture, au lieu de maintenir un `.bat` par jeu à la main.
+Automatically switches your ASUS monitor's display profile when a game launches or closes.
 
-## Compiler
+AsusGameProfiles watches for the games you play and applies the right monitor settings —
+GameVisual mode, Frame Rate Boost, brightness, color temperature, and more — the moment they
+launch, then restores your preferred profile the moment they close. Define a preset once, assign
+it to as many games as you like, and stop digging through your monitor's OSD menu mid-session.
 
-Nécessite le SDK .NET 8 (https://dotnet.microsoft.com/download/dotnet/8.0) sur ta machine Windows --
-ça n'a pas pu être compilé/testé côté serveur (WPF ne peut de toute façon s'exécuter que sous Windows).
+Built on ASUS's official [Display Control CLI](https://github.com/ASUS-Display/asus-display-control)
+(`dwc.exe`), so it requires a monitor `dwc.exe` supports. **This project is not affiliated with,
+endorsed by, or sponsored by ASUS.**
 
-```powershell
-cd AsusGameProfiles
-dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false
-```
+## Requirements
 
-L'exécutable sort dans `AsusGameProfiles\bin\Release\net8.0-windows\win-x64\publish\AsusGameProfiles.exe`.
-Copie tout le contenu de ce dossier `publish\` où tu veux (ex: `C:\Tools\AsusGameProfiles\`) --
-c'est un déploiement "framework-dependent", donc il faut le runtime .NET 8 Desktop installé sur la machine
-qui l'exécute (ce qui est ton cas puisque tu as le SDK).
+- Windows 10 (1809+) or Windows 11, x64.
+- An ASUS monitor supported by `dwc.exe` (ASUS Display Control's own CLI — if
+  [DisplayWidget Center](https://www.asus.com/support/faq/1046858/)'s "App Tweaker" already works
+  with your monitor, this will too).
+- [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) — the installer will
+  prompt for it if it's missing.
+- `dwc.exe` itself: point the app at an existing install, or use the in-app "Install dwc.exe"
+  button, which downloads it directly from ASUS's official repository and verifies its SHA256
+  checksum before installing it.
 
-Alternative simple : ouvrir `AsusGameProfiles.sln` dans Visual Studio et faire Build.
+## Install
 
-Scripts PowerShell disponibles à la racine : `.\build.ps1` (compile), `.\test.ps1` (tests unitaires,
-`-Filter` optionnel), `.\run.ps1` (compile + lance l'app), `.\publish.ps1` (publie dans `publish\`).
+Download the latest `AsusGameProfiles-Setup.msi` from the
+[Releases page](https://github.com/jffz/AsusGameProfiles/releases) and run it.
 
-## Installeur (.msi)
+Package manager installs (Chocolatey, Winget) are in progress — see
+[Known limitations](#known-limitations).
 
-```powershell
-.\package.ps1
-```
+## Quick start
 
-Publie l'app puis construit un installeur Windows classique dans `dist\AsusGameProfiles-Setup.msi`
-(install dans `Program Files`, raccourci menu Démarrer, désinstallation depuis "Applications").
-Le projet installeur (`AsusGameProfiles.Setup\`, WiX Toolset v5) nécessite le runtime .NET 8 Desktop
-sur la machine cible -- pas embarqué dans le .msi, `AsusGameProfiles.exe` invite à l'installer
-automatiquement si absent au premier lancement.
+1. Launch AsusGameProfiles. If `dwc.exe` isn't detected automatically, either browse to it manually
+   or click "Install dwc.exe" to download it.
+2. Create a **preset**: a reusable display state (GameVisual mode, Frame Rate Boost, and any
+   advanced `dwc.exe` properties you want to set).
+3. Add a **game** — from your Steam library, or manually by pointing at any `.exe`.
+4. Select the game, assign your preset **On launch**, and optionally a different preset (or the
+   global default) **On exit**.
+5. Enable **Start with Windows** and **Close to tray** — process-watch (the mechanism that detects
+   when a game starts or stops) only works while AsusGameProfiles is running, so these two settings
+   are what make the whole thing actually happen automatically instead of only when you remember to
+   open the app first.
 
-## Utilisation
+That's it — launch the game normally (Steam, a shortcut, whatever you already use) and the profile
+switches on its own.
 
-1. Lance `AsusGameProfiles.exe` normalement (double-clic) → ça ouvre l'interface de gestion.
-2. Renseigne le chemin de `dwc.exe` en bas de fenêtre (le CLI officiel ASUS Display Control),
-   et clique "Tester" pour vérifier qu'il répond.
-3. "+ Ajouter depuis Steam" → coche les jeux à gérer. Pour chaque jeu sélectionné, une fenêtre
-   te demande de pointer le bon `.exe` (pré-ouverte dans le bon dossier d'installation) -- nécessaire
-   car Steam ne stocke pas toujours un chemin d'exécutable unique et fiable dans ses fichiers internes.
-4. Sélectionne le jeu dans la liste, choisis le mode GameVisual + Frame Rate Boost pour
-   "Au lancement" et "À la fermeture", clique "Enregistrer ce profil".
-5. Clique "Enregistrer ce profil" -- **l'app écrit elle-même l'option de lancement dans le fichier
-   de config Steam** (`localconfig.vdf`), aucun copier-coller à faire dans Steam.
+## How it works
 
-   ⚠️ Steam doit être complètement fermé (icône dans la zone de notification comprise) au moment
-   où tu cliques "Enregistrer" pour un jeu Steam -- sinon l'écriture est refusée avec un message clair
-   (Steam peut sinon écraser le changement ou corrompre le fichier en cas d'accès concurrent). Une
-   sauvegarde horodatée (`localconfig.vdf.bak-AAAAMMJJ-HHMMSS`) est créée à chaque écriture, à côté
-   du fichier original, au cas où tu voudrais revenir en arrière manuellement.
+AsusGameProfiles polls running processes every couple of seconds and compares them against the
+games you've added. When a match starts, it applies that game's "on launch" preset; when it stops,
+it applies the "on exit" preset (or, if none is set, a global "Default exit profile" you configure
+once). This works identically for Steam and non-Steam games — there's no special Steam integration
+to configure, no launch options to edit.
 
-Pour un jeu ajouté manuellement (pas suivi par Steam), il n'y a pas d'"options de lancement" à écrire
-nulle part -- utilise directement le bouton **"Lancer maintenant"** qui apparaît dans l'app pour ce
-profil : il applique le réglage, lance le jeu, attend sa fermeture, puis restaure l'écran, sans quitter
-l'interface.
+This app runs entirely in user space: no administrator rights, no kernel driver, no background
+Windows service. It's just a normal app with a system tray icon, and it only affects your monitor
+(via `dwc.exe`) — it never touches a game's process, memory, or files.
 
-C'est tout -- plus besoin de créer un `.bat` par jeu, ni de toucher aux propriétés Steam.
+## Is this safe? (VAC / anti-cheat)
 
-## Pourquoi pas de détection en tâche de fond (WMI ou autre) ?
+Short answer: yes. This has nothing in common with what anti-cheat systems (VAC, FACEIT, etc.)
+actually monitor.
 
-Ce n'est pas nécessaire : comme avec ton script actuel, c'est Steam qui appelle directement
-`AsusGameProfiles.exe --launch <appid> %command%` via les options de lancement. L'appli lance
-alors elle-même le jeu (`Process.Start` + `Process.WaitForExit()`, l'équivalent fiable de
-`start /wait` en .NET) et applique les réglages avant/après. Il n'y a donc jamais de surveillance
-de processus en arrière-plan, pas besoin de droits administrateur, et pas de service qui tourne
-en permanence.
+VAC and FACEIT watch for things that touch the *protected game process* directly: code injection,
+memory reads/writes, render-pipeline hooking (DirectX/OpenGL), or suspicious kernel drivers.
+AsusGameProfiles does none of that — it's a completely separate process that (1) notices your
+game's process is running via the normal Windows process list, exactly like Task Manager does, and
+(2) talks to your *monitor*, not the game, over DDC/CI through `dwc.exe`. It never opens a handle
+to the game's process, never reads its memory, never hooks its rendering.
 
-**Sur la question anti-cheat (VAC / FACEIT) :** cette architecture n'a rigoureusement rien à voir
-avec ce que détectent les anti-cheats. Ce que VAC et l'anticheat FACEIT surveillent, c'est l'injection
-de code dans le processus du jeu, la lecture/écriture de sa mémoire, le hooking du rendu (DirectX/OpenGL),
-ou des pilotes noyau suspects -- c'est-à-dire tout ce qui touche directement au processus protégé.
-`AsusGameProfiles.exe` ne fait ni l'un ni l'autre : c'est un processus totalement externe qui (1) lance
-`cs2.exe` comme le ferait Steam lui-même, (2) parle en DDC/CI à l'écran via `dwc.exe` (aucune interaction
-avec le jeu), (3) attend que le processus se termine. Cette architecture est d'ailleurs exactement le
-mécanisme qu'utilise DisplayWidget Center depuis toujours pour son "App Tweaker" -- un logiciel préinstallé
-sur des millions de PC gamers, y compris ceux qui jouent en compétitif tous les jours.
-Si une détection de processus externe suffisait à déclencher un ban, la moitié des overlays
-(Discord, MSI Afterburner/RTSS, GeForce Experience, DisplayWidget Center lui-même) poserait
-déjà problème depuis des années.
+This is, in fact, the same fundamental mechanism ASUS's own **DisplayWidget Center "App Tweaker"**
+uses — software preinstalled on millions of gaming PCs, including plenty of people who play
+competitively every day. If external process detection alone triggered anti-cheat action, Discord,
+MSI Afterburner/RTSS, GeForce Experience, and DisplayWidget Center itself would all have been
+flagged years ago.
 
-## Écriture directe des options de lancement dans Steam
+(An earlier version of this app briefly used a different mechanism — wrapping a game's Steam launch
+command — specifically because that approach *did* cause problems with FACEIT, which refuses to run
+when a launch command looks wrapped. That mechanism was removed; process-watch, described above, is
+the only mechanism this app uses today.)
 
-L'app édite directement `userdata\<compte>\config\localconfig.vdf` (le fichier où Steam stocke,
-entre autres, les options de lancement par jeu). C'est fait avec un vrai analyseur de blocs
-(`Services/SteamLaunchOptionsWriter.cs`) qui repère précisément le bloc `apps/<appid>/LaunchOptions`
-par comptage d'accolades -- pas un remplacement de texte à l'aveugle qui risquerait de toucher au
-mauvais jeu ou de casser la structure du fichier. Tout le reste du fichier (autres jeux, réglages
-cloud, etc.) est recopié à l'identique.
+## Troubleshooting
 
-Trois garde-fous, parce que ce fichier est sensible :
-- **Refus d'écrire si Steam tourne encore** (détecté via le processus `steam.exe`) -- message clair
-  demandant de fermer Steam plutôt que d'écrire quand même et risquer un conflit.
-- **Sauvegarde horodatée automatique** avant chaque écriture, à côté du fichier original.
-- Si la structure attendue (`Software/Valve/Steam/apps`) n'est pas trouvée dans le fichier, l'app
-  abandonne l'écriture proprement plutôt que de deviner et risquer de produire un fichier invalide.
+- **"dwc.exe not found"** — browse to it manually if you already have DisplayWidget Center
+  installed, or use "Install dwc.exe" to download the official CLI automatically.
+- **"No monitor detected"** — check the cable/connection, and confirm your monitor model is one
+  `dwc.exe` supports (not every ASUS monitor exposes DDC/CI control).
+- **Nothing happens when I launch a game** — confirm the game has a preset assigned "On launch"
+  (the app warns you if it doesn't), and that **Start with Windows** + **Close to tray** are both
+  enabled so the app is actually running and watching.
+- **Steam won't let me save launch-related settings** — not applicable anymore; this app no longer
+  writes Steam launch options (see [How it works](#how-it-works)).
 
-Si plusieurs comptes Windows ont utilisé Steam sur cette machine, l'app choisit le `localconfig.vdf`
-modifié le plus récemment (en pratique, le compte actif).
+## Known limitations
 
-## Structure du projet
+- **ASUS monitors only.** This is a limitation of `dwc.exe` itself, not something this app can work
+  around.
+- **Single monitor targeting.** If you have more than one ASUS monitor connected, `dwc.exe` commands
+  currently apply without picking a specific target — multi-monitor selection is planned but not
+  built yet.
+- **No auto-update.** New versions need to be downloaded and reinstalled manually for now.
+- **Unsigned installer.** Windows SmartScreen may warn on first install. Code signing (via
+  [SignPath.io](https://signpath.io/)'s free program for open-source projects) is in progress.
+- **Package managers.** Chocolatey and Winget packaging is in progress; MSI-from-Releases is the
+  supported install path for now.
 
-```
-AsusGameProfiles/
-  App.xaml(.cs)              point d'entrée : bascule mode lanceur silencieux vs interface
-  MainWindow.xaml(.cs)       interface de gestion des profils
-  Views/AddFromSteamWindow   fenêtre de sélection des jeux détectés
-  Models/                    GameProfile, AppConfig, GameVisualMode (+ catalogue d'affichage)
-  Services/
-    SteamLibraryScanner.cs      lecture de libraryfolders.vdf + appmanifest_*.acf (aucune écriture)
-    SteamLaunchOptionsWriter.cs écriture ciblée de LaunchOptions dans localconfig.vdf (avec backup)
-    DwcService.cs               wrapper autour de dwc.exe (set/get, capture de sortie et code retour)
-    GameLauncher.cs             le "mode lanceur" appelé par Steam (--launch <appid> <exe> [args])
-    ConfigStore.cs              lecture/écriture de %AppData%\AsusGameProfiles\config.json
-```
+## Contributing
 
-La config et les logs sont stockés dans `%AppData%\AsusGameProfiles\` (config.json + dossier logs/,
-un fichier par lancement de jeu -- utile pour déboguer si un profil ne s'applique pas comme prévu).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for build instructions and how to submit changes.
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+"ASUS" is a trademark of ASUSTeK Computer Inc. This project is an independent, community-developed
+tool and is not affiliated with, endorsed by, or sponsored by ASUS.
