@@ -115,7 +115,7 @@ public partial class MainWindow : Window
         UpdateMaximizeGlyph();
 
         _processWatcher = new ProcessWatcherService(() => _config);
-        _processWatcher.ProfileTriggered += (_, _) => RefreshDisplayInfo();
+        _processWatcher.ProfileTriggered += OnProfileTriggeredByWatcher;
         _processWatcher.Start();
     }
 
@@ -131,7 +131,9 @@ public partial class MainWindow : Window
     private void UpdateMaximizeGlyph()
     {
         MaximizeGlyph.Data = Geometry.Parse(WindowState == WindowState.Maximized ? RestoreGlyphData : MaximizeGlyphData);
-        MaximizeButton.ToolTip = WindowState == WindowState.Maximized ? "Restore" : "Maximize";
+        var label = WindowState == WindowState.Maximized ? "Restore" : "Maximize";
+        MaximizeButton.ToolTip = label;
+        System.Windows.Automation.AutomationProperties.SetName(MaximizeButton, label);
     }
 
     private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -391,6 +393,16 @@ public partial class MainWindow : Window
     private void UpdateWatchStatusText()
     {
         if (_selected is null) return;
+
+        // Pas de preset "on launch" choisi : rien ne changera au lancement, et rien d'autre dans
+        // l'UI ne le signale (releve par l'audit UX -- une sauvegarde silencieuse ici donnait
+        // l'impression que le jeu etait configure alors qu'il ne se passe rien).
+        if (LaunchPresetCombo.SelectedItem is GameProfilePreset { Id.Length: 0 })
+        {
+            WatchStatusText.Foreground = DangerBrush;
+            WatchStatusText.Text = "No preset is assigned \"On launch\" -- nothing will change when this game starts. Pick a preset above if that's not intentional.";
+            return;
+        }
 
         WatchStatusText.Foreground = MutedBrush;
         var processName = Path.GetFileName(_selected.ExePath);
@@ -809,16 +821,38 @@ public partial class MainWindow : Window
         DwcBrowseButton.IsEnabled = true;
     }
 
+    /// <summary>
+    /// Seul retour visible pour l'utilisateur quand le watcher bascule un profil en arriere-plan --
+    /// sans ca, tout le mecanisme central de l'app est silencieux (releve par l'audit UX). Resout le
+    /// nom du preset applique pour un message concret plutot qu'un simple "quelque chose a change".
+    /// </summary>
+    private void OnProfileTriggeredByWatcher(GameProfile profile, string action)
+    {
+        RefreshDisplayInfo();
+
+        var presetId = action == "launch" ? profile.OnLaunchPresetId : profile.OnExitPresetId;
+        var preset = _config.Presets.FirstOrDefault(p => p.Id == presetId);
+        var text = action == "launch"
+            ? (preset != null ? $"Applied \"{preset.Name}\" for {profile.DisplayName}." : $"{profile.DisplayName} launched, but no preset is assigned.")
+            : $"{profile.DisplayName} closed -- restored \"{preset?.Name ?? "the default exit profile"}\".";
+
+        _trayIcon.ShowNotification("AsusGameProfiles", text);
+    }
+
     private void RefreshDisplayInfo()
     {
         var monitors = DwcService.GetDetectedMonitors(_config.DwcExePath);
+        DisplayCard.Visibility = Visibility.Visible;
+
         if (monitors.Count == 0)
         {
-            DisplayCard.Visibility = Visibility.Collapsed;
+            // Auparavant la carte disparaissait silencieusement (releve par l'audit UX) -- un
+            // cable debranche ou un moniteur non supporte donnait l'impression que rien ne
+            // s'affichait plutot que d'expliquer le probleme.
+            DisplayModelText.Text = "No monitor detected";
+            DisplayTechInfoText.Text = "Check that dwc.exe can reach your display, and that it's a monitor dwc.exe supports.";
             return;
         }
-
-        DisplayCard.Visibility = Visibility.Visible;
         var primary = monitors[0];
         DisplayModelText.Text = monitors.Count == 1
             ? primary.Model

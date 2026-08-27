@@ -1,6 +1,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
+using System.Security.Cryptography;
 
 namespace AsusGameProfiles.Services;
 
@@ -21,6 +22,18 @@ public static class DwcInstaller
     private const string DownloadUrl =
         "https://raw.githubusercontent.com/ASUS-Display/asus-display-control/main/cli/windows/dwc_win.zip";
 
+    /// <summary>
+    /// SHA256 de dwc_win.zip, calcule et verifie le 2026-08-27 contre l'URL ci-dessus (voir NOTICE/
+    /// SECURITY.md -- avant ca, ce téléchargement automatique n'avait aucune verification
+    /// d'integrite). Si ASUS publie une nouvelle version de dwc.exe sur main, ce hash deviendra
+    /// perime et l'install echouera proprement (message clair, avec le repli "Locate dwc.exe
+    /// manually" deja present dans l'UI) plutot que d'accepter silencieusement un fichier different
+    /// de celui verifie -- dans ce cas, retelecharger le zip, recalculer son SHA256
+    /// (`sha256sum dwc_win.zip` ou `Get-FileHash` sous PowerShell), et remplacer la valeur ci-dessous
+    /// apres avoir revu ce qui a change.
+    /// </summary>
+    private const string ExpectedSha256 = "846b0d2ac3d8390d5c7c6ab4f5e52fe127ad16b118a2e427aed885b7e1a7da46";
+
     public static async Task<DwcInstallResult> InstallAsync(string destDir)
     {
         var zipPath = Path.Combine(Path.GetTempPath(), $"dwc_win_{Guid.NewGuid():N}.zip");
@@ -34,6 +47,16 @@ public static class DwcInstaller
 
                 await using var fileStream = File.Create(zipPath);
                 await response.Content.CopyToAsync(fileStream);
+            }
+
+            var actualHash = await ComputeSha256Async(zipPath);
+            if (!string.Equals(actualHash, ExpectedSha256, StringComparison.OrdinalIgnoreCase))
+            {
+                return new DwcInstallResult(false,
+                    "Downloaded dwc.exe doesn't match the version this app verified -- ASUS may have " +
+                    "published an update, or the download was corrupted/tampered with. Not installing it " +
+                    "automatically. You can download dwc.exe yourself from ASUS's repository and use " +
+                    "\"Locate dwc.exe manually\" instead.", null);
             }
 
             // Reinstallation propre : on repart d'un dossier vide pour ne jamais melanger une
@@ -61,5 +84,12 @@ public static class DwcInstaller
         {
             try { if (File.Exists(zipPath)) File.Delete(zipPath); } catch { /* Meilleur effort : fichier temporaire, sans consequence s'il reste. */ }
         }
+    }
+
+    private static async Task<string> ComputeSha256Async(string filePath)
+    {
+        await using var stream = File.OpenRead(filePath);
+        var hash = await SHA256.HashDataAsync(stream);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 }

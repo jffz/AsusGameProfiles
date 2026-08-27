@@ -38,6 +38,21 @@ public sealed class TrayIconService : IDisposable
     public void Show() => _notifyIcon.Visible = true;
     public void Hide() => _notifyIcon.Visible = false;
 
+    /// <summary>
+    /// Notification silencieuse quand un profil est applique en arriere-plan (voir
+    /// MainWindow, abonnement a ProcessWatcherService.ProfileTriggered) -- sans ca, tout le
+    /// mecanisme central de l'app (bascule automatique) est invisible pour l'utilisateur.
+    /// No-op si l'icone n'est pas visible (fenetre ouverte, pas "close to tray") : une bulle
+    /// sans icone dans la zone de notification pour s'ancrer n'aurait rien a montrer.
+    /// </summary>
+    public void ShowNotification(string title, string text)
+    {
+        if (!_notifyIcon.Visible) return;
+        _notifyIcon.BalloonTipTitle = title;
+        _notifyIcon.BalloonTipText = text;
+        _notifyIcon.ShowBalloonTip(3000);
+    }
+
     private void Restore()
     {
         _window.Show();

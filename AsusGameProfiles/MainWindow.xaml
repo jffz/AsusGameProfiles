@@ -37,16 +37,19 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button x:Name="MinimizeButton" Style="{StaticResource CaptionButtonBase}" Click="OnMinimizeClick"
-                            shell:WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Minimize">
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Minimize"
+                            AutomationProperties.Name="Minimize">
                         <Path Data="M0,5 H10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/>
                     </Button>
                     <Button x:Name="MaximizeButton" Style="{StaticResource CaptionButtonBase}" Click="OnMaximizeRestoreClick"
-                            shell:WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Maximize">
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Maximize"
+                            AutomationProperties.Name="Maximize">
                         <Path x:Name="MaximizeGlyph" Data="M0.5,0.5 H9.5 V9.5 H0.5 Z"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/>
                     </Button>
                     <Button x:Name="CloseButton" Style="{StaticResource CaptionButtonClose}" Click="OnCloseButtonClick"
-                            shell:WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Close">
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Close"
+                            AutomationProperties.Name="Close">
                         <Path Data="M0,0 L10,10 M10,0 L0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.1"/>
                     </Button>
                 </StackPanel>
@@ -110,10 +113,12 @@
                 </ListBox>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
                     <Button x:Name="AddPresetButton" Content="+" Click="OnAddPresetClick"
-                            Style="{StaticResource IconButtonGreen}" ToolTip="New preset"/>
+                            Style="{StaticResource IconButtonGreen}" ToolTip="New preset"
+                            AutomationProperties.Name="New preset"/>
                     <Button x:Name="RemovePresetButton" Content="−" Click="OnRemovePresetClick"
                             Style="{StaticResource IconButtonRed}" ToolTip="Delete preset"
-                            Margin="8,0,0,0" IsEnabled="False"/>
+                            Margin="8,0,0,0" IsEnabled="False"
+                            AutomationProperties.Name="Delete preset"/>
                 </StackPanel>
 
                 <Border Grid.Row="4" Background="{DynamicResource OutlineBrush}" Height="1"/>
@@ -157,10 +162,12 @@
                 </ListBox>
                 <StackPanel Grid.Row="8" Orientation="Horizontal" Margin="0,10,0,0">
                     <Button x:Name="AddButton" Content="+" Click="OnAddClick"
-                            Style="{StaticResource IconButtonGreen}" ToolTip="Add a game"/>
+                            Style="{StaticResource IconButtonGreen}" ToolTip="Add a game"
+                            AutomationProperties.Name="Add a game"/>
                     <Button x:Name="RemoveButton" Content="−" Click="OnRemoveClick"
                             Style="{StaticResource IconButtonRed}" ToolTip="Remove selected game"
-                            Margin="8,0,0,0" IsEnabled="False"/>
+                            Margin="8,0,0,0" IsEnabled="False"
+                            AutomationProperties.Name="Remove selected game"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -171,9 +178,11 @@
             <!-- Top: app-wide settings (start at boot, close to tray) -->
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
                 <CheckBox x:Name="StartAtBootCheck" Content="Start with Windows"
-                          Checked="OnAppSettingChanged" Unchecked="OnAppSettingChanged" Margin="0,0,18,0"/>
+                          Checked="OnAppSettingChanged" Unchecked="OnAppSettingChanged" Margin="0,0,18,0"
+                          ToolTip="Recommended: profiles are only applied while this app is running. Starting it with Windows means it's already watching by the time you launch a game."/>
                 <CheckBox x:Name="CloseToTrayCheck" Content="Close to tray"
-                          Checked="OnAppSettingChanged" Unchecked="OnAppSettingChanged"/>
+                          Checked="OnAppSettingChanged" Unchecked="OnAppSettingChanged"
+                          ToolTip="Recommended: closing the window normally (the X button) quits the app and stops watching for games. This keeps it running in the background, minimized to the system tray, instead."/>
             </StackPanel>
 
             <!-- Bottom: display info + dwc.exe/Steam status, side by side -->
@@ -217,7 +226,8 @@
                                 <TextBlock x:Name="DwcStatusText" VerticalAlignment="Center" FontSize="13" TextWrapping="Wrap" MaxWidth="180"/>
                             </StackPanel>
                             <Button x:Name="DwcBrowseButton" Content="…" Click="OnBrowseDwcClick"
-                                    Padding="12,6" Margin="10,0,0,4" ToolTip="Locate dwc.exe manually"/>
+                                    Padding="12,6" Margin="10,0,0,4" ToolTip="Locate dwc.exe manually"
+                                    AutomationProperties.Name="Locate dwc.exe manually"/>
                             <Button x:Name="DwcInstallButton" Content="Install dwc.exe" Click="OnInstallDwcClick"
                                     Padding="10,6" FontSize="12" Margin="8,0,0,4" Style="{StaticResource PrimaryButton}"
                                     Visibility="Collapsed"
@@ -311,9 +321,11 @@
                 <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource OutlineBrush}"
                         BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,16">
                     <StackPanel>
-                        <TextBlock Text="GameVisual mode" Margin="0,0,0,4"/>
+                        <TextBlock Text="GameVisual mode" Margin="0,0,0,4"
+                                   ToolTip="Your monitor's built-in picture preset (color, contrast, sharpness tuned per scenario) -- the same setting you'd normally change from its on-screen menu."/>
                         <ComboBox x:Name="PresetModeCombo" DisplayMemberPath="Label" Margin="0,0,0,12" HorizontalAlignment="Stretch"/>
-                        <CheckBox x:Name="PresetBoostCheck" Content="Enable Frame Rate Boost (Dual Mode)" Margin="0,0,0,10"/>
+                        <CheckBox x:Name="PresetBoostCheck" Content="Enable Frame Rate Boost (Dual Mode)" Margin="0,0,0,10"
+                                  ToolTip="ASUS's overdrive/refresh-rate boost mode -- can reduce motion blur in fast-moving scenes, at the cost of some input lag depending on the monitor."/>
                         <TextBlock Text="Advanced properties" FontSize="11" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,4"/>
                         <StackPanel x:Name="PresetPropertiesPanel"/>
@@ -353,9 +365,11 @@
                         BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,16">
                     <StackPanel>
                         <TextBlock Style="{StaticResource Eyebrow}" Text="ON EXIT"/>
-                        <TextBlock Text="GameVisual mode" Margin="0,0,0,4"/>
+                        <TextBlock Text="GameVisual mode" Margin="0,0,0,4"
+                                   ToolTip="Your monitor's built-in picture preset (color, contrast, sharpness tuned per scenario) -- the same setting you'd normally change from its on-screen menu."/>
                         <ComboBox x:Name="DefaultExitModeCombo" DisplayMemberPath="Label" Margin="0,0,0,12" HorizontalAlignment="Stretch"/>
-                        <CheckBox x:Name="DefaultExitBoostCheck" Content="Enable Frame Rate Boost (Dual Mode)" Margin="0,0,0,10"/>
+                        <CheckBox x:Name="DefaultExitBoostCheck" Content="Enable Frame Rate Boost (Dual Mode)" Margin="0,0,0,10"
+                                  ToolTip="ASUS's overdrive/refresh-rate boost mode -- can reduce motion blur in fast-moving scenes, at the cost of some input lag depending on the monitor."/>
                         <TextBlock Text="Advanced properties" FontSize="11" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,4"/>
                         <StackPanel x:Name="DefaultExitPropertiesPanel"/>
