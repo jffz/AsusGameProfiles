@@ -16,7 +16,7 @@ runs on Windows, so this can't be built or tested cross-platform).
 Or open `AsusGameProfiles.sln` in Visual Studio and build normally.
 
 `package.ps1` needs the [WiX Toolset v5](https://wixtoolset.org/) CLI as a local `dotnet` tool
-(already declared in `.config/dotnet-tools.json` — run `dotnet tool restore` once if it's not
+(already declared in `.config/dotnet-tools.json`, run `dotnet tool restore` once if it's not
 picked up automatically).
 
 ## Project structure
@@ -39,12 +39,12 @@ AsusGameProfiles.Setup/     WiX v5 installer project
 ```
 
 Config and logs live in `%AppData%\AsusGameProfiles\` (`config.json`, plus a `logs\` folder with
-one file per game launch — useful if a profile doesn't apply as expected).
+one file per game launch, useful if a profile doesn't apply as expected).
 
 ## Before opening a PR
 
 - `.\build.ps1` and `.\test.ps1` should both pass. CI runs the same checks on every PR.
-- If you're touching `Services/SteamLaunchOptionsWriter.cs`, be extra careful — it edits Steam's
+- If you're touching `Services/SteamLaunchOptionsWriter.cs`, be extra careful: it edits Steam's
   real config file, and its test suite exists specifically to catch regressions there.
 - Keep PRs focused. Larger changes (new trigger mechanisms, architecture changes) are easier to
   discuss in an issue first.
