@@ -1,0 +1,17 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+
+  <PropertyGroup>
+    <OutputName>AsusGameProfiles-Setup</OutputName>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <!-- Rempli par package.ps1 (chemin vers la sortie de "dotnet publish"). Valeur par defaut pour
+         permettre un "dotnet build" direct depuis ce dossier si le publish a deja ete fait. -->
+    <AppPublishDir Condition="'$(AppPublishDir)' == ''">..\AsusGameProfiles\bin\Release\net8.0-windows\win-x64\publish</AppPublishDir>
+    <DefineConstants>PublishDir=$(AppPublishDir)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+  </ItemGroup>
+
+</Project>

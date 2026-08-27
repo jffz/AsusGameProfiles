@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>AsusGameProfiles</AssemblyName>
+    <RootNamespace>AsusGameProfiles</RootNamespace>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\AppIcon.ico"/>
+    <Resource Include="Assets\AppIcon.png"/>
+    <Resource Include="Assets\monitors\*.png"/>
+  </ItemGroup>
+
+  <!-- UseWindowsForms ajoute System.Drawing/System.Windows.Forms aux usings implicites globaux, ce qui
+       entre en conflit avec les types WPF de meme nom (Application, Brush...) partout dans le projet.
+       On les retire du set global ; les rares fichiers qui ont besoin de types WinForms/Drawing
+       (TrayIconService, IconCache) les importent explicitement eux-memes. -->
+  <ItemGroup>
+    <Using Remove="System.Drawing"/>
+    <Using Remove="System.Windows.Forms"/>
+  </ItemGroup>
+
+</Project>

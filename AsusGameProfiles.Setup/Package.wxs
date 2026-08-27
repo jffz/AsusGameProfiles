@@ -1,0 +1,66 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="AsusGameProfiles"
+           Manufacturer="AsusGameProfiles"
+           Version="1.4.2"
+           UpgradeCode="7A1B290D-F393-4AEA-AD96-D640A51B3031"
+           Language="1036"
+           Scope="perMachine">
+
+    <MajorUpgrade DowngradeErrorMessage="Une version plus recente d'AsusGameProfiles est deja installee." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon.ico" SourceFile="..\AsusGameProfiles\Assets\AppIcon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="AsusGameProfiles" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="AsusGameProfiles" />
+    </StandardDirectory>
+
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable" Guid="*">
+        <File Id="AsusGameProfilesExe" Source="$(var.PublishDir)\AsusGameProfiles.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="MainDll" Guid="*">
+        <File Id="AsusGameProfilesDll" Source="$(var.PublishDir)\AsusGameProfiles.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="SystemDrawingCommonDll" Guid="*">
+        <File Id="SystemDrawingCommonDll" Source="$(var.PublishDir)\System.Drawing.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="DepsJson" Guid="*">
+        <File Id="AsusGameProfilesDepsJson" Source="$(var.PublishDir)\AsusGameProfiles.deps.json" KeyPath="yes" />
+      </Component>
+      <Component Id="RuntimeConfigJson" Guid="*">
+        <File Id="AsusGameProfilesRuntimeConfigJson" Source="$(var.PublishDir)\AsusGameProfiles.runtimeconfig.json" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="ShortcutComponents" Directory="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="*">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+                  Name="AsusGameProfiles"
+                  Description="Profils d'ecran ASUS par jeu"
+                  Target="[INSTALLFOLDER]AsusGameProfiles.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon.ico" />
+        <RemoveFolder Id="CleanUpShortcutFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\AsusGameProfiles" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="Main" Title="AsusGameProfiles" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="ShortcutComponents" />
+    </Feature>
+
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="Banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="Dialog.bmp" />
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+  </Package>
+</Wix>

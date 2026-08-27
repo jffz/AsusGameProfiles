@@ -1,0 +1,17 @@
+# Build output
+bin/
+obj/
+dist/
+publish/
+*.user
+.vs/
+
+# WiX installer build output
+AsusGameProfiles.Setup/bin/
+AsusGameProfiles.Setup/obj/
+
+# Chocolatey package build output
+choco/*.nupkg
+
+# Dev journal — internal notes, not published to the public repo
+CLAUDE.md
