@@ -175,14 +175,17 @@
         <!-- Right column: system status, selected preset/game/default editor -->
         <DockPanel Grid.Row="2" Grid.Column="2">
 
-            <!-- Top: app-wide settings (start at boot, close to tray) -->
+            <!-- Top: app-wide settings (start at boot, close to tray, notifications) -->
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
                 <CheckBox x:Name="StartAtBootCheck" Content="Start with Windows"
                           Checked="OnAppSettingChanged" Unchecked="OnAppSettingChanged" Margin="0,0,18,0"
                           ToolTip="Recommended: profiles are only applied while this app is running. Starting it with Windows means it's already watching by the time you launch a game."/>
                 <CheckBox x:Name="CloseToTrayCheck" Content="Close to tray"
-                          Checked="OnAppSettingChanged" Unchecked="OnAppSettingChanged"
+                          Checked="OnAppSettingChanged" Unchecked="OnAppSettingChanged" Margin="0,0,18,0"
                           ToolTip="Recommended: closing the window normally (the X button) quits the app and stops watching for games. This keeps it running in the background, minimized to the system tray, instead."/>
+                <CheckBox x:Name="ShowNotificationsCheck" Content="Show notifications"
+                          Checked="OnAppSettingChanged" Unchecked="OnAppSettingChanged"
+                          ToolTip="Show a notification whenever a preset is applied or restored in the background. Turn this off if the popups get in the way while you play."/>
             </StackPanel>
 
             <!-- Bottom: display info + dwc.exe/Steam status, side by side -->

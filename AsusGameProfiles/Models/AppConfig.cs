@@ -25,4 +25,7 @@ public class AppConfig
 
     /// <summary>Si vrai, fermer la fenêtre principale la minimise dans la zone de notification au lieu de quitter l'app.</summary>
     public bool CloseToTray { get; set; } = false;
+
+    /// <summary>Si vrai (par défaut), une bulle de notification annonce l'application/la restauration d'un preset déclenchée par <see cref="AsusGameProfiles.Services.ProcessWatcherService"/>. Voir <see cref="AsusGameProfiles.MainWindow.OnProfileTriggeredByWatcher"/>.</summary>
+    public bool ShowProfileNotifications { get; set; } = true;
 }

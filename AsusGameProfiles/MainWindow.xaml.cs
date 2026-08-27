@@ -106,6 +106,7 @@ public partial class MainWindow : Window
 
         StartAtBootCheck.IsChecked = GetStartAtBoot();
         CloseToTrayCheck.IsChecked = _config.CloseToTray;
+        ShowNotificationsCheck.IsChecked = _config.ShowProfileNotifications;
 
         _trayIcon = new TrayIconService(this);
         _trayIcon.ExitRequested += (_, _) => { _reallyClosing = true; Close(); };
@@ -152,6 +153,7 @@ public partial class MainWindow : Window
     private void OnAppSettingChanged(object sender, RoutedEventArgs e)
     {
         _config.CloseToTray = CloseToTrayCheck.IsChecked == true;
+        _config.ShowProfileNotifications = ShowNotificationsCheck.IsChecked == true;
         ConfigStore.Save(_config);
 
         SetStartAtBoot(StartAtBootCheck.IsChecked == true);
@@ -829,6 +831,8 @@ public partial class MainWindow : Window
     private void OnProfileTriggeredByWatcher(GameProfile profile, string action)
     {
         RefreshDisplayInfo();
+
+        if (!_config.ShowProfileNotifications) return;
 
         var presetId = action == "launch" ? profile.OnLaunchPresetId : profile.OnExitPresetId;
         var preset = _config.Presets.FirstOrDefault(p => p.Id == presetId);
