@@ -1,0 +1,8 @@
+# Version manifest template -- __VERSION__ substituted by .github/workflows/release.yml.
+# This produces jffz.AsusGameProfiles.yaml for a specific release; submitting it to
+# microsoft/winget-pkgs is a manual PR (see CONTRIBUTING.md), not automated by this repo's CI.
+PackageIdentifier: jffz.AsusGameProfiles
+PackageVersion: __VERSION__
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.6.0

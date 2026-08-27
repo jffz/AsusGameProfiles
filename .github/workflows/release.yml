@@ -1,0 +1,129 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Derive version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag -replace '^v', ''
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Restore NuGet packages
+        run: dotnet restore AsusGameProfiles.sln
+
+      - name: Restore local dotnet tools (WiX)
+        run: dotnet tool restore
+
+      - name: Run tests
+        run: dotnet test AsusGameProfiles.sln -c Release --logger "console;verbosity=normal"
+
+      - name: Publish app
+        run: dotnet publish AsusGameProfiles\AsusGameProfiles.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false
+
+      - name: Build installer (.msi)
+        shell: pwsh
+        run: |
+          $publishDir = Resolve-Path "AsusGameProfiles\bin\Release\net8.0-windows\win-x64\publish"
+          dotnet build AsusGameProfiles.Setup\AsusGameProfiles.Setup.wixproj -c Release `
+            -p:AppPublishDir="$publishDir" -p:ProductVersion="${{ steps.version.outputs.version }}"
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item "AsusGameProfiles.Setup\bin\x64\Release\AsusGameProfiles-Setup.msi" -Destination "dist\AsusGameProfiles-Setup.msi" -Force
+
+      # Signs dist\AsusGameProfiles-Setup.msi via SignPath.io, but only once this project has been
+      # accepted into their free-for-open-source program and the corresponding secrets exist.
+      # Skips cleanly (not a failure) if they're not configured -- see README's "Known limitations"
+      # and CONTRIBUTING.md. Never blocks a release on signing being unavailable.
+      - name: Sign installer (SignPath)
+        if: ${{ secrets.SIGNPATH_API_TOKEN != '' }}
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        shell: pwsh
+        run: |
+          Write-Host "SignPath secrets are configured but the signing step itself is not wired up yet -- add it here once SignPath.io access is granted."
+          # Example (fill in once the SignPath project/policy IDs exist):
+          # dotnet tool install --global SignClient
+          # signclient sign --input dist\AsusGameProfiles-Setup.msi --config signpath-config.json ...
+
+      - name: Compute MSI SHA256
+        id: msihash
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash -Path "dist\AsusGameProfiles-Setup.msi" -Algorithm SHA256).Hash.ToLower()
+          "sha256=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Build Chocolatey package
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $url = "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/AsusGameProfiles-Setup.msi"
+          $sha256 = "${{ steps.msihash.outputs.sha256 }}"
+
+          (Get-Content choco\asusgameprofiles.nuspec -Raw) -replace '<version>0\.0\.0</version>', "<version>$version</version>" |
+            Set-Content choco\asusgameprofiles.nuspec
+
+          (Get-Content choco\tools\chocolateyinstall.ps1 -Raw) `
+            -replace '__URL__', $url -replace '__CHECKSUM__', $sha256 |
+            Set-Content choco\tools\chocolateyinstall.ps1
+
+          choco pack choco\asusgameprofiles.nuspec --outputdirectory dist
+
+      # Publishing needs the maintainer's own Chocolatey Community Repository account/API key --
+      # skipped cleanly (not a failure) if CHOCO_API_KEY isn't set. See CONTRIBUTING.md for the
+      # manual `choco push` instructions once an account exists.
+      - name: Push to Chocolatey
+        if: ${{ secrets.CHOCO_API_KEY != '' }}
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        shell: pwsh
+        run: |
+          $nupkg = Get-ChildItem dist\*.nupkg | Select-Object -First 1
+          choco push $nupkg.FullName --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY
+
+      - name: Generate Winget manifests
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $url = "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/AsusGameProfiles-Setup.msi"
+          $sha256 = "${{ steps.msihash.outputs.sha256 }}"
+
+          $outDir = "dist\winget-manifests"
+          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+
+          Get-ChildItem winget\template\*.template | ForEach-Object {
+            $outName = $_.Name -replace '\.template$', ''
+            (Get-Content $_.FullName -Raw) `
+              -replace '__VERSION__', $version -replace '__URL__', $url -replace '__SHA256__', $sha256 |
+              Set-Content (Join-Path $outDir $outName)
+          }
+
+          Compress-Archive -Path "$outDir\*" -DestinationPath "dist\winget-manifests.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            dist/AsusGameProfiles-Setup.msi
+            dist/*.nupkg
+            dist/winget-manifests.zip
+          generate_release_notes: true

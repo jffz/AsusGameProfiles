@@ -7,7 +7,10 @@
     <!-- Rempli par package.ps1 (chemin vers la sortie de "dotnet publish"). Valeur par defaut pour
          permettre un "dotnet build" direct depuis ce dossier si le publish a deja ete fait. -->
     <AppPublishDir Condition="'$(AppPublishDir)' == ''">..\AsusGameProfiles\bin\Release\net8.0-windows\win-x64\publish</AppPublishDir>
-    <DefineConstants>PublishDir=$(AppPublishDir)</DefineConstants>
+    <!-- Passe -p:ProductVersion=x.y.z pour surcharger (utilise par le workflow de release, qui
+         derive la version du tag git plutot que de dependre d'une valeur maintenue a la main). -->
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.4.2</ProductVersion>
+    <DefineConstants>PublishDir=$(AppPublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

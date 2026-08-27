@@ -3,7 +3,7 @@
 
   <Package Name="AsusGameProfiles"
            Manufacturer="AsusGameProfiles"
-           Version="1.4.2"
+           Version="$(var.ProductVersion)"
            UpgradeCode="7A1B290D-F393-4AEA-AD96-D640A51B3031"
            Language="1036"
            Scope="perMachine">

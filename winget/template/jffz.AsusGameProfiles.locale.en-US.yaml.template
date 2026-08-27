@@ -1,0 +1,25 @@
+# Default locale manifest template -- __VERSION__ substituted by .github/workflows/release.yml.
+PackageIdentifier: jffz.AsusGameProfiles
+PackageVersion: __VERSION__
+PackageLocale: en-US
+Publisher: jffz
+PublisherUrl: https://github.com/jffz
+PublisherSupportUrl: https://github.com/jffz/AsusGameProfiles/issues
+PackageName: AsusGameProfiles
+PackageUrl: https://github.com/jffz/AsusGameProfiles
+License: Apache-2.0
+LicenseUrl: https://github.com/jffz/AsusGameProfiles/blob/main/LICENSE
+ShortDescription: Automatically switches your ASUS monitor's display profile when a game launches or closes.
+Description: >-
+  AsusGameProfiles watches for the games you play and applies the right monitor settings
+  (GameVisual mode, Frame Rate Boost, and more) the moment they launch, then restores your
+  preferred profile when they close. Built on ASUS's official dwc.exe CLI. Not affiliated with,
+  endorsed by, or sponsored by ASUS.
+Moniker: asusgameprofiles
+Tags:
+  - asus
+  - monitor
+  - gamevisual
+  - display-profile
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

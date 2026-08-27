@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Version below is a placeholder ("0.0.0") substituted by .github/workflows/release.yml before
+  running `choco pack`; this file itself always stays at 0.0.0 in the repo, don't hand-edit it
+  per release. See choco/tools/chocolateyinstall.ps1 for the matching placeholder convention.
+-->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>asusgameprofiles</id>
+    <version>0.0.0</version>
+    <title>AsusGameProfiles</title>
+    <authors>jffz</authors>
+    <projectUrl>https://github.com/jffz/AsusGameProfiles</projectUrl>
+    <licenseUrl>https://github.com/jffz/AsusGameProfiles/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/jffz/AsusGameProfiles</projectSourceUrl>
+    <docsUrl>https://github.com/jffz/AsusGameProfiles/blob/main/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/jffz/AsusGameProfiles/issues</bugTrackerUrl>
+    <tags>asus monitor display-profile game gamevisual dwc</tags>
+    <summary>Automatically switches your ASUS monitor's display profile when a game launches or closes.</summary>
+    <description>
+AsusGameProfiles watches for the games you play and applies the right monitor settings (GameVisual
+mode, Frame Rate Boost, and more) the moment they launch, then restores your preferred profile when
+they close. Built on ASUS's official dwc.exe CLI.
+
+Not affiliated with, endorsed by, or sponsored by ASUS.
+    </description>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
