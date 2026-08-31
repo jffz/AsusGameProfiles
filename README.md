@@ -1,6 +1,12 @@
 # AsusGameProfiles
 
+[![CI](https://github.com/jffz/AsusGameProfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/jffz/AsusGameProfiles/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/jffz/AsusGameProfiles)](https://github.com/jffz/AsusGameProfiles/releases/latest)
+[![License](https://img.shields.io/github/license/jffz/AsusGameProfiles)](LICENSE)
+
 Automatically switches your ASUS monitor's display profile when a game launches or closes.
+
+![AsusGameProfiles main window](docs/screenshots/main-window.png)
 
 AsusGameProfiles watches for the games you play and applies the right monitor settings
 (GameVisual mode, Frame Rate Boost, brightness, color temperature, and more) the moment they
@@ -40,6 +46,9 @@ Package manager installs (Chocolatey, Winget) are in progress, see
 3. Add a **game**, from your Steam library, or manually by pointing at any `.exe`.
 4. Select the game, assign your preset **On launch**, and optionally a different preset (or the
    global default) **On exit**.
+
+   ![Assigning on launch and on exit presets to a game](docs/screenshots/game-editor.png)
+
 5. Enable **Start with Windows** and **Close to tray**. Process-watch (the mechanism that detects
    when a game starts or stops) only works while AsusGameProfiles is running, so these two settings
    are what make the whole thing actually happen automatically instead of only when you remember to
