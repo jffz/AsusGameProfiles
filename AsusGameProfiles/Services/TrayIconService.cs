@@ -53,7 +53,12 @@ public sealed class TrayIconService : IDisposable
         _notifyIcon.ShowBalloonTip(3000);
     }
 
-    private void Restore()
+    /// <summary>
+    /// Montre/restaure/active la fenetre principale et masque l'icone de la zone de notification.
+    /// Public : aussi appelee par <see cref="AsusGameProfiles.MainWindow.ActivateFromAnotherInstance"/>
+    /// quand une deuxieme instance de l'app est lancee et se ferme aussitot (voir App.xaml.cs).
+    /// </summary>
+    public void Restore()
     {
         _window.Show();
         _window.WindowState = WindowState.Normal;

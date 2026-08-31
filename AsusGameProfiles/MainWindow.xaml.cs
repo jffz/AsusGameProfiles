@@ -120,6 +120,13 @@ public partial class MainWindow : Window
         _processWatcher.Start();
     }
 
+    /// <summary>
+    /// Appelee par App.xaml.cs (via le Dispatcher) quand une deuxieme instance de l'app vient d'etre
+    /// lancee et de se fermer aussitot -- voir le mutex nomme dans App.OnStartup. Ramene cette fenetre
+    /// au premier plan au lieu de laisser une deuxieme instance s'ouvrir en parallele.
+    /// </summary>
+    public void ActivateFromAnotherInstance() => _trayIcon.Restore();
+
     // ---------- Custom title bar (voir MainWindow.xaml, WindowChrome) ----------
 
     private void OnMinimizeClick(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;

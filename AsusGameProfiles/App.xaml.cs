@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,6 +10,15 @@ namespace AsusGameProfiles;
 
 public partial class App : Application
 {
+    // Nommes (pas juste un objet en memoire) : c'est ce qui permet a un DEUXIEME process de detecter
+    // le premier, un Mutex/EventWaitHandle in-process ne serait visible que dans son propre process.
+    private const string SingleInstanceMutexName = "AsusGameProfiles_SingleInstance_Mutex";
+    private const string ActivateEventName = "AsusGameProfiles_SingleInstance_Activate";
+
+    // Racine volontairement gardee en vie pour toute la duree du process (jamais dispose explicitement) :
+    // le mutex ne doit se relacher qu'a la fermeture du process, exactement ce que fait le GC/l'OS ici.
+    private Mutex? _singleInstanceMutex;
+
     /// <summary>
     /// Ouvre le menu deroulant d'un ComboBox editable des qu'on clique n'importe ou dans son champ
     /// texte, pas seulement sur la fleche -- comme le comportement natif d'un ComboBox non-editable
@@ -51,8 +61,40 @@ public partial class App : Application
             return;
         }
 
-        // Sinon : lancement normal (double-clic) -> interface de gestion des profils.
+        // Sinon : lancement normal (double-clic) -> interface de gestion des profils. Un seul exemplaire
+        // de l'UI a la fois (2026-08-31, vrai bug rapporte : rien n'empechait de lancer l'app plusieurs
+        // fois, ce qui demarrait autant de ProcessWatcherService/icones de zone de notification en
+        // parallele -- polling redondant, ecritures concurrentes de config.json, plusieurs icones tray).
+        _singleInstanceMutex = new Mutex(true, SingleInstanceMutexName, out bool createdNew);
+
+        // Cree systematiquement (pas juste "ouvert" par la deuxieme instance) : evite une course ou la
+        // deuxieme instance appellerait EventWaitHandle.OpenExisting avant que la premiere ait fini de
+        // creer l'event -- ce constructeur ouvre l'event existant s'il y en a deja un, sinon le cree.
+        var activateEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ActivateEventName);
+
+        if (!createdNew)
+        {
+            // Une instance de l'UI tourne deja : on lui demande de se montrer, et celle-ci se ferme
+            // sans jamais ouvrir de fenetre.
+            activateEvent.Set();
+            Shutdown(0);
+            return;
+        }
+
         var window = new MainWindow();
         window.Show();
+
+        // Ecoute en tache de fond, pour toute la duree de vie de l'app : une deuxieme instance signale
+        // cet event au lieu d'ouvrir sa propre fenetre (voir ci-dessus).
+        var listenerThread = new Thread(() =>
+        {
+            while (true)
+            {
+                activateEvent.WaitOne();
+                Dispatcher.Invoke(window.ActivateFromAnotherInstance);
+            }
+        })
+        { IsBackground = true };
+        listenerThread.Start();
     }
 }
